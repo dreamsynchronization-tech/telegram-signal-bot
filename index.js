@@ -65,7 +65,9 @@ bot.on("callback_query", (query) => {
             return;
         }
 
-        bot.sendMessage(chatId, latestSignal);
+        bot.sendMessage(chatId, latestSignal, {
+            parse_mode: "Markdown"
+        });
     }
 
 });
@@ -93,23 +95,13 @@ Tap to copy ↑
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/B9zze29or7CJs1nBrigSCWSibfxvkmieFXcGg5cxbonk${ca}` }
-                    ],
-                    [
+                        { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${ca}` },
                         { text: "📊 CHART", url: `https://dexscreener.com/solana/${ca}` }
                     ]
                 ]
             }
         });
 
-    });
-
-});
-
-    users.forEach(user => {
-        bot.sendMessage(user, latestSignal, {
-    parse_mode: "Markdown"
-});
     });
 
 });
