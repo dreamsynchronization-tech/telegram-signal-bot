@@ -78,14 +78,15 @@ bot.onText(/\/alpha (.+)/, (msg, match) => {
 
     latestSignal = `🚨 ALPHA ALERT 🚨
 
-CA:
-\`${match[1]}\`
+CA:\`${match[1]}\`
 
 Tap to copy ↑
 `;
 
     users.forEach(user => {
-        bot.sendMessage(user, latestSignal);
+        bot.sendMessage(user, latestSignal, {
+    parse_mode: "Markdown"
+});
     });
 
 });
