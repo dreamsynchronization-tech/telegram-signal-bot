@@ -5,12 +5,9 @@ const bot = new TelegramBot(token, { polling: true });
 
 let users = [];
 let approvedUsers = [];
-
 let latestSignal = "No signal yet.";
-let latestCA = "";
+let signalMessages = [];
 
-
-// START
 bot.onText(/\/start/, (msg) => {
 
     const chatId = msg.chat.id;
@@ -36,14 +33,10 @@ Do you agree to use this bot?`,
 
 });
 
-
-// BUTTON HANDLER
 bot.on("callback_query", (query) => {
 
     const chatId = query.message.chat.id;
 
-
-    // USER AGREES
     if (query.data === "agree") {
 
         if (!users.includes(chatId)) {
@@ -66,8 +59,6 @@ bot.on("callback_query", (query) => {
 
     }
 
-
-    // SIGNAL BUTTON
     if (query.data === "signal") {
 
         if (!approvedUsers.includes(chatId)) {
@@ -80,48 +71,65 @@ bot.on("callback_query", (query) => {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${latestCA}` }
-                    ],
+                        { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${latestSignalCA}` }
+                    ]
                 ]
             }
         });
-
     }
 
 });
 
+let latestSignalCA = "";
 
-// ADMIN SIGNAL COMMAND
-bot.onText(/\/alpha (.+)/, (msg, match) => {
+bot.onText(/\/alpha (.+)/, async (msg, match) => {
 
     const chatId = msg.chat.id;
 
-    // ADMIN CHECK
     if (chatId.toString() !== process.env.ADMIN_ID) return;
 
     const ca = match[1];
-
-    latestCA = ca;
+    latestSignalCA = ca;
 
     latestSignal = `🚨 ALPHA ALERT 🚨
 
-CA: \`${ca}\`
+CA:
+\`${ca}\`
 
 Tap to copy ↑
 `;
 
-    users.forEach(user => {
+    // 이전 SIGNAL 삭제
+    for (const m of signalMessages) {
+        try {
+            await bot.deleteMessage(m.chatId, m.messageId);
+        } catch (e) {}
+    }
 
-        bot.sendMessage(user, latestSignal, {
-            parse_mode: "Markdown",
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${ca}` }
-                    ],
-                ]
-            }
-        });
+    signalMessages = [];
+
+    // 새로운 SIGNAL 전송
+    users.forEach(async (user) => {
+
+        try {
+
+            const sent = await bot.sendMessage(user, latestSignal, {
+                parse_mode: "Markdown",
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${ca}` }
+                        ]
+                    ]
+                }
+            });
+
+            signalMessages.push({
+                chatId: user,
+                messageId: sent.message_id
+            });
+
+        } catch (e) {}
 
     });
 
