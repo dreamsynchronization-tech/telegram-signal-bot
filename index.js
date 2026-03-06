@@ -5,8 +5,12 @@ const bot = new TelegramBot(token, { polling: true });
 
 let users = [];
 let approvedUsers = [];
-let latestSignal = "No signal yet.";
 
+let latestSignal = "No signal yet.";
+let latestCA = "";
+
+
+// START
 bot.onText(/\/start/, (msg) => {
 
     const chatId = msg.chat.id;
@@ -32,10 +36,14 @@ Do you agree to use this bot?`,
 
 });
 
+
+// BUTTON HANDLER
 bot.on("callback_query", (query) => {
 
     const chatId = query.message.chat.id;
 
+
+    // USER AGREES
     if (query.data === "agree") {
 
         if (!users.includes(chatId)) {
@@ -58,6 +66,8 @@ bot.on("callback_query", (query) => {
 
     }
 
+
+    // SIGNAL BUTTON
     if (query.data === "signal") {
 
         if (!approvedUsers.includes(chatId)) {
@@ -66,24 +76,36 @@ bot.on("callback_query", (query) => {
         }
 
         bot.sendMessage(chatId, latestSignal, {
-            parse_mode: "Markdown"
+            parse_mode: "Markdown",
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${latestCA}` }
+                    ],
+                ]
+            }
         });
+
     }
 
 });
 
+
+// ADMIN SIGNAL COMMAND
 bot.onText(/\/alpha (.+)/, (msg, match) => {
 
     const chatId = msg.chat.id;
 
+    // ADMIN CHECK
     if (chatId.toString() !== process.env.ADMIN_ID) return;
 
     const ca = match[1];
 
+    latestCA = ca;
+
     latestSignal = `🚨 ALPHA ALERT 🚨
 
-CA:
-\`${ca}\`
+CA: \`${ca}\`
 
 Tap to copy ↑
 `;
@@ -95,8 +117,8 @@ Tap to copy ↑
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${ca}` },
-                    ]
+                        { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${ca}` }
+                    ],
                 ]
             }
         });
