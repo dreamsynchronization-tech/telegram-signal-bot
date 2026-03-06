@@ -76,7 +76,13 @@ bot.onText(/\/alpha (.+)/, (msg, match) => {
 
     if (chatId.toString() !== process.env.ADMIN_ID) return;
 
-    latestSignal = "🚨 ALPHA ALERT 🚨\n" + match[1];
+    latestSignal = `🚨 ALPHA ALERT 🚨
+
+CA:
+\`${match[1]}\`
+
+Tap to copy ↑
+`;
 
     users.forEach(user => {
         bot.sendMessage(user, latestSignal);
