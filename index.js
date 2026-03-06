@@ -96,7 +96,6 @@ Tap to copy ↑
                 inline_keyboard: [
                     [
                         { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${ca}` },
-                        { text: "📊 CHART", url: `https://dexscreener.com/solana/${ca}` }
                     ]
                 ]
             }
