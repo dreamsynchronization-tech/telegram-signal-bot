@@ -54,18 +54,18 @@ MENU
 
 function showMainMenu(chatId,messageId=null){
 
-const text=`𓁿 SIGNAL ONLINE
+const text=`𓁿 SIGNAL ONLINE ᯤ
 
 Blockchain scanning...
 
-⚠ 알림을 켜두세요`;
+⚠ 알림을 켜두지 않으면 시그널을 놓칠 수 있습니다.`;
 
 const options={
 reply_markup:{
 inline_keyboard:[
 [
 { text:"ⓘ Info",callback_data:"info"},
-{ text:"💰 Earn",callback_data:"earn"}
+{ text:"Ⰶ Earn",callback_data:"earn"}
 ]
 ]
 }
@@ -96,7 +96,26 @@ const text=`𓁿 SIGNAL PROTOCOL
 실시간으로 스캔합니다.
 
 이상 움직임 감지시
-SIGNAL 전송됩니다.`;
+SIGNAL 전송됩니다.
+
+━━━━━━━━━━━━
+
+사용 방법
+
+1) 알림을 켜두세요
+
+2) SIGNAL이 도착하면
+   BUY 버튼을 누르세요
+
+3) Phantom 지갑으로
+즉시 구매할 수 있습니다.
+
+Phantom 지갑에
+Solana가 준비되어 있으면
+더 빠르게 실행됩니다.
+
+SIGNAL은
+언제든 나타날 수 있습니다.`;
 
 bot.editMessageText(text,{
 chat_id:chatId,
@@ -119,7 +138,7 @@ function showEarn(chatId,messageId){
 const inviteCount=invites[chatId]||0;
 const dice=diceBalance[chatId]||0;
 
-const text=`💰 EARN SYSTEM
+const text=`Ⰶ EARN SYSTEM
 
 Invite 3 friends → 1 Dice 🎲
 
@@ -215,7 +234,10 @@ bot.editMessageText(
 
 이 봇은 암호화폐 시그널을 제공합니다.
 
-시스템에 접속하시겠습니까?`,
+모든 투자 책임은
+사용자에게 있습니다.
+
+동의하시고 시스템에 접속하시겠습니까?`,
 {
 chat_id:chatId,
 message_id:scan.message_id,
