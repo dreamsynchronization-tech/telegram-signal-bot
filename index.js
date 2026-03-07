@@ -67,7 +67,7 @@ SIGNAL이 전송됩니다.
 1) 알림을 켜두세요
 
 2) SIGNAL이 도착하면
-BUY 버튼을 누르세요
+⛁ ₿uy 혹은 CA 를 복사하세요.
 
 3) Phantom 지갑으로
 즉시 구매할 수 있습니다.
@@ -206,7 +206,7 @@ bot.on("callback_query", async (query) => {
                 inline_keyboard: [
                     [
                         {
-                            text: "⛁ ₿UY",
+                            text: "⛁ ₿uy",
                             url: `https://phantom.com/tokens/solana/${latestSignalCA}`
                         }
                     ]
@@ -266,7 +266,7 @@ Tap to copy`;
                     inline_keyboard: [
                         [
                             {
-                                text: "⛁ ₿UY",
+                                text: "⛁ ₿uy",
                                 url: `https://phantom.com/tokens/solana/${ca}`
                             }
                         ]
