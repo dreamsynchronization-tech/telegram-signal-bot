@@ -84,11 +84,11 @@ bot.on("callback_query", (query) => {
         }
 
         bot.sendMessage(chatId,
-`𓁿 SIGNAL ONLINE`,
+`𓁿 SIGNAL 온라인 🟢`,
 {
     reply_markup: {
         inline_keyboard: [
-            [{ text: "SCANNING", callback_data: "signal" }]
+            [{ text: "SCANNING...", callback_data: "signal" }]
         ]
     }
 });
