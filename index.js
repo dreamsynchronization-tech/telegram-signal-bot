@@ -6,7 +6,11 @@ const ADMIN_ID = process.env.ADMIN_ID;
 
 const bot = new TelegramBot(token, { polling: true });
 
-let users = new Set(JSON.parse(fs.readFileSync("users.json", "utf8")));
+let users = new Set();
+
+if (fs.existsSync("users.json")) {
+    users = new Set(JSON.parse(fs.readFileSync("users.json", "utf8")));
+}
 let approvedUsers = new Set();
 
 let latestSignal = "No signal yet.";
@@ -14,7 +18,7 @@ let latestSignalCA = "";
 let signalMessages = [];
 
 function saveUsers() {
-    fs.writeFileSync("users.json", JSON.stringify([...users]));
+    fs.writeFileSync("users.json", JSON.stringify([...users], null, 2));
 }
 
 /* =========================
