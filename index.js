@@ -248,14 +248,20 @@ CA
 Tap to copy`;
 
 
-    // 이전 시그널 삭제
-    for (const m of signalMessages) {
-        try {
-            await bot.deleteMessage(m.chatId, m.messageId);
-        } catch {}
-    }
+  // 이전 시그널 삭제
+for (const m of signalMessages) {
+    try {
+        await bot.deleteMessage(m.chatId, m.messageId);
+    } catch (e) {
 
-    signalMessages = [];
+        users.delete(m.chatId);
+        saveUsers();
+
+        console.log("Removed blocked user:", m.chatId);
+    }
+}
+
+signalMessages = [];
 
 
     // 유저에게 전송
