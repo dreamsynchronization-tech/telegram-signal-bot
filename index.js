@@ -84,7 +84,7 @@ if (query.data === "agree") {
     if (!approvedUsers.includes(chatId)) approvedUsers.push(chatId);
 
     bot.sendMessage(chatId,
-`𓁿 SIGNAL online
+`𓁿 SIGNAL ONLINE ᯤ
 
 Blockchain Scanning...
 
@@ -158,15 +158,15 @@ SIGNAL은
 if (query.data === "back") {
 
     bot.sendMessage(chatId,
-`𓁿 SIGNAL ONLINE
+`𓁿 SIGNAL ONLINE ᯤ
 
 Blockchain Scanning...
 
-⚠️ 알림 켜두세요`,
+⚠︎ 알림을 켜두지 않으면 시그널을 놓칠 수 있습니다.`,
 {
     reply_markup: {
         inline_keyboard: [
-            [{ text: "𖥂 READ", callback_data: "access" }]
+            [{ text: "ⓘ Info", callback_data: "access" }]
         ]
     }
 });
@@ -188,7 +188,7 @@ if (query.data === "signal") {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${latestSignalCA}` }
+                    { text: "⛁ ₿UY", url: `https://phantom.com/tokens/solana/${latestSignalCA}` }
                 ]
             ]
         }
@@ -242,7 +242,7 @@ Tap to copy`;
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${ca}` }
+                            { text: "⛁ ₿UY", url: `https://phantom.com/tokens/solana/${ca}` }
                         ]
                     ]
                 }
