@@ -11,7 +11,6 @@ let users = new Set();
 if (fs.existsSync("users.json")) {
     users = new Set(JSON.parse(fs.readFileSync("users.json", "utf8")));
 }
-let approvedUsers = new Set();
 
 let latestSignal = "No signal yet.";
 let latestSignalCA = "";
@@ -180,7 +179,6 @@ bot.on("callback_query", async (query) => {
        users.add(chatId);
        saveUsers();
        
-       approvedUsers.add(chatId);
 
         showMainMenu(chatId);
     }
@@ -204,7 +202,7 @@ bot.on("callback_query", async (query) => {
     // SIGNAL 확인
     if (query.data === "signal") {
 
-        if (!approvedUsers.has(chatId)) {
+        if (!users.has(chatId)) {
             bot.sendMessage(chatId, "⚠️ 먼저 시스템 접속 필요");
             return;
         }
