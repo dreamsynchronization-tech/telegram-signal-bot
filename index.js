@@ -33,7 +33,7 @@ SYSTEM SCANNING...
 
 LANGUAGE DETECTED
 
-KOREAN`,
+한국어`,
         {
             chat_id: chatId,
             message_id: scan.message_id
@@ -157,13 +157,15 @@ SIGNAL은
 // BACK 버튼
 if (query.data === "back") {
 
-    bot.sendMessage(chatId,
+    bot.editMessageText(
 `𓁿 SIGNAL ONLINE ᯤ
 
 Blockchain Scanning...
 
 ⚠︎ 알림을 켜두지 않으면 시그널을 놓칠 수 있습니다.`,
 {
+    chat_id: chatId,
+    message_id: messageId,
     reply_markup: {
         inline_keyboard: [
             [{ text: "ⓘ Info", callback_data: "access" }]
