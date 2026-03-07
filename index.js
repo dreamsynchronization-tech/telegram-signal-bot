@@ -6,19 +6,29 @@ const ADMIN_ID = process.env.ADMIN_ID;
 
 const bot = new TelegramBot(token, { polling: true });
 
+/* =========================
+   USERS STORAGE (Railway Volume)
+========================= */
+
+const USERS_FILE = "/data/users.json";
+
 let users = new Set();
 
-if (fs.existsSync("users.json")) {
-    users = new Set(JSON.parse(fs.readFileSync("users.json", "utf8")));
+if (fs.existsSync(USERS_FILE)) {
+    users = new Set(JSON.parse(fs.readFileSync(USERS_FILE, "utf8")));
 }
+
+function saveUsers() {
+    fs.writeFileSync(USERS_FILE, JSON.stringify([...users], null, 2));
+}
+
+/* =========================
+   GLOBAL DATA
+========================= */
 
 let latestSignal = "No signal yet.";
 let latestSignalCA = "";
 let signalMessages = [];
-
-function saveUsers() {
-    fs.writeFileSync("users.json", JSON.stringify([...users], null, 2));
-}
 
 /* =========================
    UI FUNCTIONS
@@ -26,37 +36,36 @@ function saveUsers() {
 
 function showMainMenu(chatId, messageId = null) {
 
-    const text =
+const text =
 `𓁿 SIGNAL ONLINE ᯤ
 
 Blockchain Scanning...
 
 ⚠︎ 알림을 켜두지 않으면 시그널을 놓칠 수 있습니다.`;
 
-    const options = {
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: "ⓘ Info", callback_data: "info" }]
-            ]
-        }
-    };
+const options = {
+reply_markup: {
+inline_keyboard: [
+[{ text: "ⓘ Info", callback_data: "info" }]
+]
+}
+};
 
-    if (messageId) {
-        bot.editMessageText(text, {
-            chat_id: chatId,
-            message_id: messageId,
-            ...options
-        });
-    } else {
-        bot.sendMessage(chatId, text, options);
-    }
+if (messageId) {
+bot.editMessageText(text, {
+chat_id: chatId,
+message_id: messageId,
+...options
+});
+} else {
+bot.sendMessage(chatId, text, options);
 }
 
-
+}
 
 function showInfo(chatId, messageId) {
 
-    const text =
+const text =
 `𓁿 SIGNAL PROTOCOL
 
 이 시스템은
@@ -85,18 +94,17 @@ Solana가 준비되어 있으면
 SIGNAL은
 언제든 나타날 수 있습니다.`;
 
-    bot.editMessageText(text, {
-        chat_id: chatId,
-        message_id: messageId,
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: "🔙 Back", callback_data: "menu" }]
-            ]
-        }
-    });
+bot.editMessageText(text, {
+chat_id: chatId,
+message_id: messageId,
+reply_markup: {
+inline_keyboard: [
+[{ text: "🔙 Back", callback_data: "menu" }]
+]
 }
+});
 
-
+}
 
 /* =========================
    START COMMAND
@@ -104,9 +112,9 @@ SIGNAL은
 
 bot.onText(/\/start/, async (msg) => {
 
-    const chatId = msg.chat.id;
+const chatId = msg.chat.id;
 
-    const scan = await bot.sendMessage(chatId,
+const scan = await bot.sendMessage(chatId,
 `01001010 10100101 01001010
 11001010 01010101 00101010
 01010101 01001010 11010101
@@ -115,9 +123,9 @@ bot.onText(/\/start/, async (msg) => {
 SYSTEM SCANNING...`
 );
 
-    setTimeout(() => {
+setTimeout(() => {
 
-        bot.editMessageText(
+bot.editMessageText(
 `01001010 10100101 01001010
 11001010 01010101 00101010
 01010101 01001010 11010101
@@ -125,17 +133,16 @@ SYSTEM SCANNING...`
 LANGUAGE DETECTED
 
 KOREAN`,
-        {
-            chat_id: chatId,
-            message_id: scan.message_id
-        });
+{
+chat_id: chatId,
+message_id: scan.message_id
+});
 
-    }, 2000);
+}, 2000);
 
+setTimeout(() => {
 
-    setTimeout(() => {
-
-        bot.editMessageText(
+bot.editMessageText(
 `𓁿 SIGNAL 시스템 접속 요청
 
 이 봇은 암호화폐 시그널을 제공합니다.
@@ -144,21 +151,19 @@ KOREAN`,
 사용자에게 있습니다.
 
 시스템에 접속하시겠습니까?`,
-        {
-            chat_id: chatId,
-            message_id: scan.message_id,
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: "⚷ 시스템 접속", callback_data: "agree" }]
-                ]
-            }
-        });
-
-    }, 4000);
-
+{
+chat_id: chatId,
+message_id: scan.message_id,
+reply_markup: {
+inline_keyboard: [
+[{ text: "⚷ 시스템 접속", callback_data: "agree" }]
+]
+}
 });
 
+}, 4000);
 
+});
 
 /* =========================
    BUTTON HANDLER
@@ -166,66 +171,32 @@ KOREAN`,
 
 bot.on("callback_query", async (query) => {
 
-    const chatId = query.message.chat.id;
-    const messageId = query.message.message_id;
+const chatId = query.message.chat.id;
+const messageId = query.message.message_id;
 
-    bot.answerCallbackQuery(query.id);
+bot.answerCallbackQuery(query.id);
 
+// 시스템 접속
+if (query.data === "agree") {
 
+users.add(chatId);
+saveUsers();
 
-    // 시스템 접속
-    if (query.data === "agree") {
+showMainMenu(chatId);
 
-       users.add(chatId);
-       saveUsers();
-       
+}
 
-        showMainMenu(chatId);
-    }
+// Info
+if (query.data === "info") {
+showInfo(chatId, messageId);
+}
 
-
-
-    // Info
-    if (query.data === "info") {
-        showInfo(chatId, messageId);
-    }
-
-
-
-    // Back to Menu
-    if (query.data === "menu") {
-        showMainMenu(chatId, messageId);
-    }
-
-
-
-    // SIGNAL 확인
-    if (query.data === "signal") {
-
-        if (!users.has(chatId)) {
-            bot.sendMessage(chatId, "⚠️ 먼저 시스템 접속 필요");
-            return;
-        }
-
-        bot.sendMessage(chatId, latestSignal, {
-            parse_mode: "Markdown",
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        {
-                            text: "⛁ ₿uy",
-                            url: `https://phantom.com/tokens/solana/${latestSignalCA}`
-                        }
-                    ]
-                ]
-            }
-        });
-
-    }
+// Back
+if (query.data === "menu") {
+showMainMenu(chatId, messageId);
+}
 
 });
-
-
 
 /* =========================
    ADMIN SIGNAL
@@ -233,15 +204,15 @@ bot.on("callback_query", async (query) => {
 
 bot.onText(/\/alpha (.+)/, async (msg, match) => {
 
-    const chatId = msg.chat.id;
+const chatId = msg.chat.id;
 
-    if (chatId.toString() !== ADMIN_ID) return;
+if (chatId.toString() !== ADMIN_ID) return;
 
-    const ca = match[1];
+const ca = match[1];
 
-    latestSignalCA = ca;
+latestSignalCA = ca;
 
-    latestSignal =
+latestSignal =
 `🚨 SIGNAL DETECTED 🚨
 
 CA
@@ -249,59 +220,63 @@ CA
 
 Tap to copy`;
 
+/* 이전 SIGNAL 삭제 */
 
-  // 이전 시그널 삭제
 for (const m of signalMessages) {
-    try {
-        await bot.deleteMessage(m.chatId, m.messageId);
-    } catch (e) {
 
-        users.delete(m.chatId);
-        saveUsers();
+try {
 
-        console.log("Removed blocked user:", m.chatId);
-    }
+await bot.deleteMessage(m.chatId, m.messageId);
+
+} catch (e) {
+
+users.delete(m.chatId);
+saveUsers();
+
+console.log("Removed blocked user:", m.chatId);
+
+}
+
 }
 
 signalMessages = [];
 
+/* SIGNAL 전송 */
 
-    // 유저에게 전송
-    for (const user of users) {
+for (const user of users) {
 
-        try {
+try {
 
-            const sent = await bot.sendMessage(user, latestSignal, {
+const sent = await bot.sendMessage(user, latestSignal, {
 
-                parse_mode: "Markdown",
+parse_mode: "Markdown",
 
-                reply_markup: {
-                    inline_keyboard: [
-                        [
-                            {
-                                text: "⛁ ₿uy",
-                                url: `https://phantom.com/tokens/solana/${ca}`
-                            }
-                        ]
-                    ]
-                }
+reply_markup: {
+inline_keyboard: [
+[
+{
+text: "⛁ ₿uy",
+url: `https://phantom.com/tokens/solana/${ca}`
+}
+]
+]
+}
 
-            });
+});
 
-            signalMessages.push({
-                chatId: user,
-                messageId: sent.message_id
-            });
+signalMessages.push({
+chatId: user,
+messageId: sent.message_id
+});
 
-        } catch (e) {
+} catch (e) {
 
-        // 봇 차단 유저 자동 삭제
-        users.delete(user);
-        saveUsers();
+users.delete(user);
+saveUsers();
 
-        console.log("Removed blocked user:", user);
+console.log("Removed blocked user:", user);
 
-    }
+}
 
 }
 
