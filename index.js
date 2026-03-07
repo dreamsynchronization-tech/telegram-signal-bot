@@ -7,63 +7,82 @@ const ADMIN_ID = process.env.ADMIN_ID;
 const bot = new TelegramBot(token, { polling: true });
 
 /* =========================
-   USERS STORAGE (Railway Volume)
+   STORAGE
 ========================= */
 
 const USERS_FILE = "/data/users.json";
+const INVITE_FILE = "/data/invites.json";
+
+if (!fs.existsSync("/data")) {
+    fs.mkdirSync("/data", { recursive: true });
+}
 
 let users = new Set();
+let invites = {};
 
 if (fs.existsSync(USERS_FILE)) {
-    users = new Set(JSON.parse(fs.readFileSync(USERS_FILE, "utf8")));
+    users = new Set(JSON.parse(fs.readFileSync(USERS_FILE)));
+}
+
+if (fs.existsSync(INVITE_FILE)) {
+    invites = JSON.parse(fs.readFileSync(INVITE_FILE));
 }
 
 function saveUsers() {
-    fs.writeFileSync(USERS_FILE, JSON.stringify([...users], null, 2));
+    fs.writeFileSync(USERS_FILE, JSON.stringify([...users]));
+}
+
+function saveInvites() {
+    fs.writeFileSync(INVITE_FILE, JSON.stringify(invites));
 }
 
 /* =========================
-   GLOBAL DATA
+   SIGNAL DATA
 ========================= */
 
-let latestSignal = "No signal yet.";
-let latestSignalCA = "";
 let signalMessages = [];
 
 /* =========================
-   UI FUNCTIONS
+   MAIN MENU
 ========================= */
 
-function showMainMenu(chatId, messageId = null) {
+function showMainMenu(chatId, messageId=null) {
 
 const text =
-`𓁿 SIGNAL ONLINE ᯤ
+`𓁿 SIGNAL ONLINE
 
-Blockchain Scanning...
+Blockchain scanning...
 
-⚠︎ 알림을 켜두지 않으면 시그널을 놓칠 수 있습니다.`;
+⚠ 알림을 켜두세요`;
 
-const options = {
-reply_markup: {
-inline_keyboard: [
-[{ text: "ⓘ Info", callback_data: "info" }]
+const keyboard = {
+reply_markup:{
+inline_keyboard:[
+[
+{ text:"ⓘ Info", callback_data:"info" },
+{ text:"💰 Earn", callback_data:"earn" }
+]
 ]
 }
 };
 
-if (messageId) {
-bot.editMessageText(text, {
-chat_id: chatId,
-message_id: messageId,
-...options
+if(messageId){
+bot.editMessageText(text,{
+chat_id:chatId,
+message_id:messageId,
+...keyboard
 });
-} else {
-bot.sendMessage(chatId, text, options);
+}else{
+bot.sendMessage(chatId,text,keyboard);
 }
 
 }
 
-function showInfo(chatId, messageId) {
+/* =========================
+   INFO
+========================= */
+
+function showInfo(chatId,messageId){
 
 const text =
 `𓁿 SIGNAL PROTOCOL
@@ -72,34 +91,15 @@ const text =
 암호화폐 네트워크를
 실시간으로 스캔합니다.
 
-이상 움직임이 감지되면
-SIGNAL이 전송됩니다.
+이상 움직임 감지시
+SIGNAL 전송됩니다.`;
 
-━━━━━━━━━━━━
-
-사용 방법
-
-1) 알림을 켜두세요
-
-2) SIGNAL이 도착하면
-⛁ ₿uy 혹은 CA 를 복사하세요.
-
-3) Phantom 지갑으로
-즉시 구매할 수 있습니다.
-
-Phantom 지갑에
-Solana가 준비되어 있으면
-더 빠르게 실행됩니다.
-
-SIGNAL은
-언제든 나타날 수 있습니다.`;
-
-bot.editMessageText(text, {
-chat_id: chatId,
-message_id: messageId,
-reply_markup: {
-inline_keyboard: [
-[{ text: "🔙 Back", callback_data: "menu" }]
+bot.editMessageText(text,{
+chat_id:chatId,
+message_id:messageId,
+reply_markup:{
+inline_keyboard:[
+[{text:"🔙 Back",callback_data:"menu"}]
 ]
 }
 });
@@ -107,61 +107,65 @@ inline_keyboard: [
 }
 
 /* =========================
-   START COMMAND
+   EARN
 ========================= */
 
-bot.onText(/\/start/, async (msg) => {
+function showEarn(chatId,messageId){
 
-const chatId = msg.chat.id;
+const inviteCount = invites[chatId] || 0;
 
-const scan = await bot.sendMessage(chatId,
-`01001010 10100101 01001010
-11001010 01010101 00101010
-01010101 01001010 11010101
-10101010 01010101 01010101
+const text =
+`💰 EARN SYSTEM
 
-SYSTEM SCANNING...`
-);
+Invite 3 friends
+Earn 1 dice 🎲
 
-setTimeout(() => {
+🎯 6이 3번 연속 나오면
+₩10,000,000
 
-bot.editMessageText(
-`01001010 10100101 01001010
-11001010 01010101 00101010
-01010101 01001010 11010101
+Your invites: ${inviteCount}
 
-LANGUAGE DETECTED
+Invite link:
+https://t.me/${process.env.BOT_USERNAME}?start=${chatId}`;
 
-KOREAN`,
-{
-chat_id: chatId,
-message_id: scan.message_id
-});
-
-}, 2000);
-
-setTimeout(() => {
-
-bot.editMessageText(
-`𓁿 SIGNAL 시스템 접속 요청
-
-이 봇은 암호화폐 시그널을 제공합니다.
-
-모든 투자 책임은
-사용자에게 있습니다.
-
-시스템에 접속하시겠습니까?`,
-{
-chat_id: chatId,
-message_id: scan.message_id,
-reply_markup: {
-inline_keyboard: [
-[{ text: "⚷ 시스템 접속", callback_data: "agree" }]
+bot.editMessageText(text,{
+chat_id:chatId,
+message_id:messageId,
+reply_markup:{
+inline_keyboard:[
+[
+{ text:"🎲 Roll Dice",callback_data:"dice" }
+],
+[
+{ text:"🔙 Back",callback_data:"menu"}
+]
 ]
 }
 });
 
-}, 4000);
+}
+
+/* =========================
+   START
+========================= */
+
+bot.onText(/\/start(.*)/, async(msg,match)=>{
+
+const chatId = msg.chat.id;
+
+const ref = match[1].trim();
+
+if(ref && ref !== chatId.toString()){
+
+invites[ref] = (invites[ref] || 0) + 1;
+saveInvites();
+
+}
+
+users.add(chatId);
+saveUsers();
+
+showMainMenu(chatId);
 
 });
 
@@ -169,94 +173,134 @@ inline_keyboard: [
    BUTTON HANDLER
 ========================= */
 
-bot.on("callback_query", async (query) => {
+bot.on("callback_query",async(query)=>{
 
 const chatId = query.message.chat.id;
 const messageId = query.message.message_id;
 
 bot.answerCallbackQuery(query.id);
 
-// 시스템 접속
-if (query.data === "agree") {
-
-users.add(chatId);
-saveUsers();
-
-showMainMenu(chatId);
-
+if(query.data === "menu"){
+showMainMenu(chatId,messageId);
 }
 
-// Info
-if (query.data === "info") {
-showInfo(chatId, messageId);
+if(query.data === "info"){
+showInfo(chatId,messageId);
 }
 
-// Back
-if (query.data === "menu") {
-showMainMenu(chatId, messageId);
+if(query.data === "earn"){
+showEarn(chatId,messageId);
+}
+
+if(query.data === "dice"){
+
+const inviteCount = invites[chatId] || 0;
+
+if(inviteCount < 3){
+bot.sendMessage(chatId,"Invite 3 friends first.");
+return;
+}
+
+bot.sendDice(chatId);
+
 }
 
 });
 
 /* =========================
-   ADMIN SIGNAL
+   ADMIN USERS
+========================= */
+
+bot.onText(/\/users/,msg=>{
+
+if(msg.chat.id.toString() !== ADMIN_ID) return;
+
+bot.sendMessage(msg.chat.id,
+`👥 Total Users: ${users.size}`
+);
+
+});
+
+/* =========================
+   BROADCAST
+========================= */
+
+bot.onText(/\/broadcast (.+)/,async(msg,match)=>{
+
+if(msg.chat.id.toString() !== ADMIN_ID) return;
+
+const text = match[1];
+
+for(const user of users){
+
+try{
+
+await bot.sendMessage(user,text);
+
+}catch{
+
+users.delete(user);
+saveUsers();
+
+}
+
+}
+
+});
+
+/* =========================
+   SIGNAL
 ========================= */
 
 bot.onText(/\/alpha (.+)/, async (msg, match) => {
 
-const chatId = msg.chat.id;
+if (msg.chat.id.toString() !== ADMIN_ID) return;
 
-if (chatId.toString() !== ADMIN_ID) return;
+const args = match[1].split(" ");
 
-const ca = match[1];
+const ca = args[0];
+const price = args[1] || null;
 
-latestSignalCA = ca;
-
-latestSignal =
-`🚨 SIGNAL DETECTED 🚨
+let signalText =
+`🚨 SIGNAL DETECTED
 
 CA
-\`${ca}\`
+\`${ca}\``;
 
-Tap to copy`;
+if(price){
+signalText += `
 
-/* 이전 SIGNAL 삭제 */
-
-for (const m of signalMessages) {
-
-try {
-
-await bot.deleteMessage(m.chatId, m.messageId);
-
-} catch (e) {
-
-users.delete(m.chatId);
-saveUsers();
-
-console.log("Removed blocked user:", m.chatId);
-
+현재 가격: ${price}`;
 }
+
+/* 이전 시그널 삭제 */
+
+for(const m of signalMessages){
+
+try{
+await bot.deleteMessage(m.chatId,m.messageId);
+}catch{}
 
 }
 
 signalMessages = [];
 
-/* SIGNAL 전송 */
+/* 전송 */
 
-for (const user of users) {
+for(const user of users){
 
-try {
+try{
 
-const sent = await bot.sendMessage(user, latestSignal, {
+const sent = await bot.sendMessage(user,signalText,{
 
-parse_mode: "Markdown",
+parse_mode:"Markdown",
 
-reply_markup: {
-inline_keyboard: [
+reply_markup:{
+inline_keyboard:[
 [
 {
-text: "⛁ ₿uy",
-url: `https://phantom.com/tokens/solana/${ca}`
+text:"⛁ Buy",
+url:`https://phantom.com/tokens/solana/${ca}`
 }
 ]
 ]
@@ -265,16 +309,14 @@ url: `https://phantom.com/tokens/solana/${ca}`
 });
 
 signalMessages.push({
-chatId: user,
-messageId: sent.message_id
+chatId:user,
+messageId:sent.message_id
 });
 
-} catch (e) {
+}catch{
 
 users.delete(user);
 saveUsers();
-
-console.log("Removed blocked user:", user);
 
 }
 
