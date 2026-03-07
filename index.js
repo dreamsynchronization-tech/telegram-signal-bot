@@ -84,15 +84,15 @@ if (query.data === "agree") {
     if (!approvedUsers.includes(chatId)) approvedUsers.push(chatId);
 
     bot.sendMessage(chatId,
-`𓁿 SIGNAL ONLINE
+`𓁿 SIGNAL online
 
 Blockchain Scanning...
 
-⚠️ 알림 켜두세요`,
+⚠︎ 알림을 켜두지 않으면 시그널을 놓칠 수 있습니다.`,
 {
     reply_markup: {
         inline_keyboard: [
-            [{ text: "𖥂 READ", callback_data: "access" }]
+            [{ text: "ⓘ Info", callback_data: "access" }]
         ]
     }
 });
@@ -113,27 +113,30 @@ if (query.data === "access") {
         bot.editMessageText(
 `𓁿 SIGNAL PROTOCOL
 
-Solana 네트워크 실시간 스캔
+이 시스템은
+암호화폐 네트워크를
+실시간으로 스캔합니다.
 
-━━━━━━━━━━━━━━
+이상 움직임이 감지되면
+SIGNAL이 전송됩니다.
+
+━━━━━━━━━━━━
 
 사용 방법
 
-1️⃣ 봇 열어두기
+1) 알림을 켜두세요
 
-2️⃣ 알림 켜기
+2) SIGNAL이 도착하면
+   BUY 버튼을 누르세요
 
-3️⃣ 시그널 오면
-🔥 BUY 버튼 클릭
+3) Phantom 지갑으로
+즉시 구매할 수 있습니다.
 
-━━━━━━━━━━━━━━
+Phantom 지갑에
+Solana가 준비되어 있으면
+더 빠르게 실행됩니다.
 
-차트를 계속 볼 필요 없습니다.
-
-시그널이 감지되면
-시스템이 먼저 알려줍니다.
-
-다음 시그널은
+SIGNAL은
 언제든 나타날 수 있습니다.`,
 {
     chat_id: chatId,
