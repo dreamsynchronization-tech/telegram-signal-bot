@@ -46,11 +46,10 @@ KOREAN
     setTimeout(() => {
 
         bot.editMessageText(
-`⚠️ 시스템 접속 요청
+`𓁿 SIGNAL 시스템 접속 요청
 
 이 봇은 암호화폐 시그널을 제공합니다.
 
-수익은 보장되지 않으며
 모든 투자 결정과 책임은
 전적으로 사용자에게 있습니다.
 
@@ -85,11 +84,11 @@ bot.on("callback_query", (query) => {
         }
 
         bot.sendMessage(chatId,
-`⚡ DREAMSYNC SIGNAL SYSTEM ⚡`,
+`𓁿 SIGNAL ONLINE`,
 {
     reply_markup: {
         inline_keyboard: [
-            [{ text: "🔥 THE SIGNAL", callback_data: "signal" }]
+            [{ text: "SCANNING", callback_data: "signal" }]
         ]
     }
 });
