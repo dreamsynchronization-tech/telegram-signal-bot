@@ -8,27 +8,65 @@ let approvedUsers = [];
 let latestSignal = "No signal yet.";
 let signalMessages = [];
 
-bot.onText(/\/start/, (msg) => {
+bot.onText(/\/start/, async (msg) => {
 
     const chatId = msg.chat.id;
 
-    bot.sendMessage(chatId,
-`⚠️ DREAMSYNC SIGNAL SYSTEM
+    // 1️⃣ Matrix 숫자 출력
+    const scan = await bot.sendMessage(chatId,
+`01001010 10100101 01001010
+11001010 01010101 00101010
+01010101 01001010 11010101
+10101010 01010101 01010101
 
-This bot shares crypto signals.
+SYSTEM SCANNING...
+`);
 
-There is NO guarantee of profit.
+    // 2️⃣ 2초 후 업데이트
+    setTimeout(() => {
 
-All investment decisions and risks
-are entirely your responsibility.
+        bot.editMessageText(
+`01001010 10100101 01001010
+11001010 01010101 00101010
+01010101 01001010 11010101
 
-Do you agree to use this bot?`,
-{
-    reply_markup: {
-        inline_keyboard: [
-            [{ text: "✅ YES", callback_data: "agree" }]
-        ]
-    }
+LANGUAGE DETECTED
+
+KOREAN
+`,
+        {
+            chat_id: chatId,
+            message_id: scan.message_id
+        });
+
+    }, 2000);
+
+
+    // 3️⃣ 4초 후 한국어 메시지
+    setTimeout(() => {
+
+        bot.editMessageText(
+`⚠️ 시스템 접속 요청
+
+이 봇은 암호화폐 시그널을 제공합니다.
+
+수익은 보장되지 않으며
+모든 투자 결정과 책임은
+전적으로 사용자에게 있습니다.
+
+동의하시고, 시스템에 접속하시겠습니까?`,
+        {
+            chat_id: chatId,
+            message_id: scan.message_id,
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: "🔓 시스템 접속", callback_data: "agree" }]
+                ]
+            }
+        });
+
+    }, 4000);
+
 });
 
 });
