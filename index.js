@@ -58,7 +58,7 @@ KOREAN`,
             message_id: scan.message_id,
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: "🔓 시스템 접속", callback_data: "agree" }]
+                    [{ text: " ⚷ 시스템 접속", callback_data: "agree" }]
                 ]
             }
         });
