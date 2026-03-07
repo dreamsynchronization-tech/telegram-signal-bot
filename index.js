@@ -3,64 +3,69 @@ const fs = require("fs");
 
 const token = process.env.BOT_TOKEN;
 const ADMIN_ID = process.env.ADMIN_ID;
+const BOT_USERNAME = process.env.BOT_USERNAME;
 
-const bot = new TelegramBot(token, { polling: true });
-
-/* =========================
-   STORAGE
-========================= */
-
-const USERS_FILE = "/data/users.json";
-const INVITE_FILE = "/data/invites.json";
-
-if (!fs.existsSync("/data")) {
-    fs.mkdirSync("/data", { recursive: true });
-}
-
-let users = new Set();
-let invites = {};
-
-if (fs.existsSync(USERS_FILE)) {
-    users = new Set(JSON.parse(fs.readFileSync(USERS_FILE)));
-}
-
-if (fs.existsSync(INVITE_FILE)) {
-    invites = JSON.parse(fs.readFileSync(INVITE_FILE));
-}
-
-function saveUsers() {
-    fs.writeFileSync(USERS_FILE, JSON.stringify([...users]));
-}
-
-function saveInvites() {
-    fs.writeFileSync(INVITE_FILE, JSON.stringify(invites));
-}
+const bot = new TelegramBot(token,{polling:true});
 
 /* =========================
-   SIGNAL DATA
+STORAGE
 ========================= */
 
-let signalMessages = [];
+if(!fs.existsSync("/data")){
+fs.mkdirSync("/data",{recursive:true});
+}
+
+const USERS_FILE="/data/users.json";
+const INVITES_FILE="/data/invites.json";
+const DICE_FILE="/data/dice.json";
+
+let users=new Set();
+let invites={};
+let diceBalance={};
+let diceHistory={};
+
+if(fs.existsSync(USERS_FILE)){
+users=new Set(JSON.parse(fs.readFileSync(USERS_FILE)));
+}
+
+if(fs.existsSync(INVITES_FILE)){
+invites=JSON.parse(fs.readFileSync(INVITES_FILE));
+}
+
+if(fs.existsSync(DICE_FILE)){
+diceBalance=JSON.parse(fs.readFileSync(DICE_FILE));
+}
+
+function saveUsers(){
+fs.writeFileSync(USERS_FILE,JSON.stringify([...users]));
+}
+
+function saveInvites(){
+fs.writeFileSync(INVITES_FILE,JSON.stringify(invites));
+}
+
+function saveDice(){
+fs.writeFileSync(DICE_FILE,JSON.stringify(diceBalance));
+}
 
 /* =========================
-   MAIN MENU
+MENU
 ========================= */
 
-function showMainMenu(chatId, messageId=null) {
+function showMainMenu(chatId,messageId=null){
 
-const text =
-`𓁿 SIGNAL ONLINE
+const text=`𓁿 SIGNAL ONLINE
 
 Blockchain scanning...
 
 ⚠ 알림을 켜두세요`;
 
-const keyboard = {
+const options={
 reply_markup:{
 inline_keyboard:[
 [
-{ text:"ⓘ Info", callback_data:"info" },
-{ text:"💰 Earn", callback_data:"earn" }
+{ text:"ⓘ Info",callback_data:"info"},
+{ text:"💰 Earn",callback_data:"earn"}
 ]
 ]
 }
@@ -70,22 +75,21 @@ if(messageId){
 bot.editMessageText(text,{
 chat_id:chatId,
 message_id:messageId,
-...keyboard
+...options
 });
 }else{
-bot.sendMessage(chatId,text,keyboard);
+bot.sendMessage(chatId,text,options);
 }
 
 }
 
 /* =========================
-   INFO
+INFO
 ========================= */
 
 function showInfo(chatId,messageId){
 
-const text =
-`𓁿 SIGNAL PROTOCOL
+const text=`𓁿 SIGNAL PROTOCOL
 
 이 시스템은
 암호화폐 네트워크를
@@ -107,38 +111,37 @@ inline_keyboard:[
 }
 
 /* =========================
-   EARN
+EARN
 ========================= */
 
 function showEarn(chatId,messageId){
 
-const inviteCount = invites[chatId] || 0;
+const inviteCount=invites[chatId]||0;
+const dice=diceBalance[chatId]||0;
 
-const text =
-`💰 EARN SYSTEM
+const text=`💰 EARN SYSTEM
 
-Invite 3 friends
-Earn 1 dice 🎲
+Invite 3 friends → 1 Dice 🎲
 
-🎯 6이 3번 연속 나오면
-₩10,000,000
+🎯 Jackpot
+Roll 6 three times in a row
+Win ₩10,000,000
 
-Your invites: ${inviteCount}
+━━━━━━━━━━
 
-Invite link:
-https://t.me/${process.env.BOT_USERNAME}?start=${chatId}`;
+Invites: ${inviteCount}
+Dice Balance: ${dice}
+
+Invite link
+https://t.me/${BOT_USERNAME}?start=${chatId}`;
 
 bot.editMessageText(text,{
 chat_id:chatId,
 message_id:messageId,
 reply_markup:{
 inline_keyboard:[
-[
-{ text:"🎲 Roll Dice",callback_data:"dice" }
-],
-[
-{ text:"🔙 Back",callback_data:"menu"}
-]
+[{text:"🎲 Roll Dice",callback_data:"dice"}],
+[{text:"🔙 Back",callback_data:"menu"}]
 ]
 }
 });
@@ -146,74 +149,189 @@ inline_keyboard:[
 }
 
 /* =========================
-   START
+START
 ========================= */
 
-bot.onText(/\/start(.*)/, async(msg,match)=>{
+bot.onText(/\/start(.*)/,async(msg,match)=>{
 
-const chatId = msg.chat.id;
+const chatId=msg.chat.id;
+const ref=match[1].trim();
 
-const ref = match[1].trim();
+/* invite */
 
-if(ref && ref !== chatId.toString()){
+if(ref && ref!==chatId.toString()){
 
-invites[ref] = (invites[ref] || 0) + 1;
-saveInvites();
+invites[ref]=(invites[ref]||0)+1;
+
+if(invites[ref]%3===0){
+
+diceBalance[ref]=(diceBalance[ref]||0)+1;
+saveDice();
+
+bot.sendMessage(ref,
+`🎁 Invite reward!
+
+You earned 1 Dice 🎲
+
+Dice Balance: ${diceBalance[ref]}`
+);
 
 }
+
+saveInvites();
+}
+
+/* scanning animation */
+
+const scan=await bot.sendMessage(chatId,
+`01001010 10100101 01001010
+11001010 01010101 00101010
+01010101 01001010 11010101
+10101010 01010101 01010101
+
+SYSTEM SCANNING...`
+);
+
+setTimeout(()=>{
+
+bot.editMessageText(
+`01001010 10100101 01001010
+11001010 01010101 00101010
+
+LANGUAGE DETECTED
+
+KOREAN`,
+{
+chat_id:chatId,
+message_id:scan.message_id
+});
+
+},2000);
+
+setTimeout(()=>{
+
+bot.editMessageText(
+`𓁿 SIGNAL 시스템 접속 요청
+
+이 봇은 암호화폐 시그널을 제공합니다.
+
+시스템에 접속하시겠습니까?`,
+{
+chat_id:chatId,
+message_id:scan.message_id,
+reply_markup:{
+inline_keyboard:[
+[{text:"⚷ 시스템 접속",callback_data:"agree"}]
+]
+}
+});
+
+},4000);
+
+});
+
+/* =========================
+BUTTONS
+========================= */
+
+bot.on("callback_query",async(query)=>{
+
+const chatId=query.message.chat.id;
+const messageId=query.message.message_id;
+
+bot.answerCallbackQuery(query.id);
+
+if(query.data==="agree"){
 
 users.add(chatId);
 saveUsers();
 
 showMainMenu(chatId);
 
-});
+}
 
-/* =========================
-   BUTTON HANDLER
-========================= */
-
-bot.on("callback_query",async(query)=>{
-
-const chatId = query.message.chat.id;
-const messageId = query.message.message_id;
-
-bot.answerCallbackQuery(query.id);
-
-if(query.data === "menu"){
+if(query.data==="menu"){
 showMainMenu(chatId,messageId);
 }
 
-if(query.data === "info"){
+if(query.data==="info"){
 showInfo(chatId,messageId);
 }
 
-if(query.data === "earn"){
+if(query.data==="earn"){
 showEarn(chatId,messageId);
 }
 
-if(query.data === "dice"){
+/* dice */
 
-const inviteCount = invites[chatId] || 0;
+if(query.data==="dice"){
 
-if(inviteCount < 3){
-bot.sendMessage(chatId,"Invite 3 friends first.");
+const balance=diceBalance[chatId]||0;
+
+if(balance<=0){
+bot.sendMessage(chatId,"❌ You have no dice.");
 return;
 }
 
-bot.sendDice(chatId);
+diceBalance[chatId]-=1;
+saveDice();
+
+/* history */
+
+if(!diceHistory[chatId]){
+diceHistory[chatId]=[];
+}
+
+/* telegram dice */
+
+let diceMsg=await bot.sendDice(chatId);
+let roll=diceMsg.dice.value;
+
+/* 6 6 상태면 6 방지 */
+
+if(
+diceHistory[chatId].length>=2 &&
+diceHistory[chatId][diceHistory[chatId].length-1]===6 &&
+diceHistory[chatId][diceHistory[chatId].length-2]===6 &&
+roll===6
+){
+
+diceMsg=await bot.sendDice(chatId);
+roll=diceMsg.dice.value;
+
+}
+
+/* 기록 */
+
+diceHistory[chatId].push(roll);
+
+if(diceHistory[chatId].length>3){
+diceHistory[chatId].shift();
+}
+
+setTimeout(()=>{
+
+bot.sendMessage(chatId,
+`🎲 Dice Result
+
+You rolled: ${roll}
+
+Dice Left: ${diceBalance[chatId]}`
+);
+
+},2000);
 
 }
 
 });
 
 /* =========================
-   ADMIN USERS
+ADMIN USERS
 ========================= */
 
 bot.onText(/\/users/,msg=>{
 
-if(msg.chat.id.toString() !== ADMIN_ID) return;
+if(msg.chat.id.toString()!==ADMIN_ID) return;
 
 bot.sendMessage(msg.chat.id,
 `👥 Total Users: ${users.size}`
@@ -222,21 +340,19 @@ bot.sendMessage(msg.chat.id,
 });
 
 /* =========================
-   BROADCAST
+BROADCAST
 ========================= */
 
 bot.onText(/\/broadcast (.+)/,async(msg,match)=>{
 
-if(msg.chat.id.toString() !== ADMIN_ID) return;
+if(msg.chat.id.toString()!==ADMIN_ID) return;
 
-const text = match[1];
+const text=match[1];
 
 for(const user of users){
 
 try{
-
 await bot.sendMessage(user,text);
-
 }catch{
 
 users.delete(user);
@@ -249,52 +365,32 @@ saveUsers();
 });
 
 /* =========================
-   SIGNAL
+SIGNAL
 ========================= */
 
-bot.onText(/\/alpha (.+)/, async (msg, match) => {
+bot.onText(/\/alpha (.+)/,async(msg,match)=>{
 
-if (msg.chat.id.toString() !== ADMIN_ID) return;
+if(msg.chat.id.toString()!==ADMIN_ID) return;
 
-const args = match[1].split(" ");
+const args=match[1].split(" ");
+const ca=args[0];
+const price=args[1];
 
-const ca = args[0];
-const price = args[1] || null;
-
-let signalText =
-`🚨 SIGNAL DETECTED
+let text=`🚨 SIGNAL DETECTED
 
 CA
 \`${ca}\``;
 
 if(price){
-signalText += `
-
-현재 가격: ${price}`;
+text+=`\n\n현재 가격: ${price}`;
 }
-
-/* 이전 시그널 삭제 */
-
-for(const m of signalMessages){
-
-try{
-await bot.deleteMessage(m.chatId,m.messageId);
-}catch{}
-
-}
-
-signalMessages = [];
-
-/* 전송 */
 
 for(const user of users){
 
 try{
 
-const sent = await bot.sendMessage(user,signalText,{
-
+await bot.sendMessage(user,text,{
 parse_mode:"Markdown",
-
 reply_markup:{
 inline_keyboard:[
 [
@@ -305,12 +401,6 @@ url:`https://phantom.com/tokens/solana/${ca}`
 ]
 ]
 }
-
-});
-
-signalMessages.push({
-chatId:user,
-messageId:sent.message_id
 });
 
 }catch{
