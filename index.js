@@ -1,18 +1,21 @@
 const TelegramBot = require("node-telegram-bot-api");
+const fs = require("fs");
 
 const token = process.env.BOT_TOKEN;
 const ADMIN_ID = process.env.ADMIN_ID;
 
 const bot = new TelegramBot(token, { polling: true });
 
-let users = new Set();
+let users = new Set(JSON.parse(fs.readFileSync("users.json", "utf8")));
 let approvedUsers = new Set();
 
 let latestSignal = "No signal yet.";
 let latestSignalCA = "";
 let signalMessages = [];
 
-
+function saveUsers() {
+    fs.writeFileSync("users.json", JSON.stringify([...users]));
+}
 
 /* =========================
    UI FUNCTIONS
@@ -170,8 +173,10 @@ bot.on("callback_query", async (query) => {
     // 시스템 접속
     if (query.data === "agree") {
 
-        users.add(chatId);
-        approvedUsers.add(chatId);
+       users.add(chatId);
+       saveUsers();
+       
+       approvedUsers.add(chatId);
 
         showMainMenu(chatId);
     }
@@ -280,8 +285,16 @@ Tap to copy`;
                 messageId: sent.message_id
             });
 
-        } catch {}
+        } catch (e) {
+
+        // 봇 차단 유저 자동 삭제
+        users.delete(user);
+        saveUsers();
+
+        console.log("Removed blocked user:", user);
 
     }
+
+}
 
 });
