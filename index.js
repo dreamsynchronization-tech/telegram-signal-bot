@@ -69,10 +69,12 @@ KOREAN
 });
 
 
-bot.on("callback_query", (query) => {
+bot.on("callback_query", async (query) => {
 
     const chatId = query.message.chat.id;
+    const messageId = query.message.message_id;
 
+    // 시스템 접속
     if (query.data === "agree") {
 
         if (!users.includes(chatId)) {
@@ -84,34 +86,107 @@ bot.on("callback_query", (query) => {
         }
 
         bot.sendMessage(chatId,
-`𓁿 SIGNAL 온라인 🟢`,
+`𓁿 SIGNAL ONLINE 🟢
+
+Solana Network Scanning...
+
+이 시스템은 자동으로
+시그널을 감지합니다.
+
+시그널이 발견되면
+즉시 알림이 전송됩니다.
+
+알림을 켜두세요.`,
 {
     reply_markup: {
         inline_keyboard: [
-            [{ text: "SCANNING...", callback_data: "signal" }]
+            [{ text: "🔓 ACCESS", callback_data: "access" }]
         ]
     }
 });
 
     }
 
-    if (query.data === "signal") {
+    // ACCESS 메뉴
+    if (query.data === "access") {
 
-        if (!approvedUsers.includes(chatId)) {
-            bot.sendMessage(chatId, "⚠️ You must agree first.");
-            return;
-        }
+        bot.sendMessage(chatId,
+`𓁿 SIGNAL ACCESS
 
-        bot.sendMessage(chatId, latestSignal, {
-            parse_mode: "Markdown",
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        { text: "🔥 BUY", url: `https://phantom.com/tokens/solana/${latestSignalCA}` }
-                    ]
-                ]
+System modules detected.`,
+{
+    reply_markup: {
+        inline_keyboard: [
+            [{ text: "📡 HOW IT WORKS", callback_data: "how" }],
+            [{ text: "👥 INVITE", callback_data: "invite" }],
+            [{ text: "🎲 DICE", callback_data: "dice" }]
+        ]
+    }
+});
+
+    }
+
+    // HOW IT WORKS
+    if (query.data === "how") {
+
+        const loading = await bot.sendMessage(chatId,
+`ACCESSING MODULE...`
+);
+
+        setTimeout(() => {
+
+            bot.editMessageText(
+`SYSTEM MODULE: SIGNAL_PROTOCOL
+
+01010110 01001001 01000101
+01010111 00100000 01010011
+01001001 01000111 01001110
+01000001 01001100
+
+DECODING PROTOCOL...
+
+TRANSLATED
+
+━━━━━━━━━━━━━━
+
+𓁿 SIGNAL 프로토콜
+
+이 시스템은
+Solana 네트워크를
+실시간으로 스캔합니다.
+
+이상 움직임이 감지되면
+즉시 시그널이 전송됩니다.
+
+━━━━━━━━━━━━━━
+
+사용 방법
+
+1️⃣ 봇을 열어두세요
+
+2️⃣ 알림을 켜두세요
+
+3️⃣ 시그널이 도착하면
+🔥 BUY 버튼으로
+바로 구매할 수 있습니다
+
+━━━━━━━━━━━━━━
+
+차트를 계속 볼 필요 없습니다.
+
+시그널이 감지되면
+시스템이 먼저 알려줍니다.
+
+다음 시그널은
+언제든 나타날 수 있습니다.`,
+            {
+                chat_id: chatId,
+                message_id: loading.message_id
             }
-        });
+        );
+
+        }, 1500);
+
     }
 
 });
