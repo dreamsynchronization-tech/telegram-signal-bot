@@ -23,6 +23,7 @@ let users=new Set();
 let invites={};
 let diceBalance={};
 let diceHistory={};
+let lastSignal = {};
 
 if(fs.existsSync(USERS_FILE)){
 users=new Set(JSON.parse(fs.readFileSync(USERS_FILE)));
@@ -411,7 +412,17 @@ for(const user of users){
 
 try{
 
-await bot.sendMessage(user,text,{
+/* 이전 시그널 삭제 */
+
+if(lastSignal[user]){
+try{
+await bot.deleteMessage(user,lastSignal[user]);
+}catch{}
+}
+
+/* 새 시그널 전송 */
+
+const sent = await bot.sendMessage(user,text,{
 parse_mode:"Markdown",
 reply_markup:{
 inline_keyboard:[
@@ -424,6 +435,10 @@ url:`https://phantom.com/tokens/solana/${ca}`
 ]
 }
 });
+
+/* message_id 저장 */
+
+lastSignal[user] = sent.message_id;
 
 }catch{
 
